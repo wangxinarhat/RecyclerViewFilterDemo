@@ -37,22 +37,63 @@ public class MainActivity extends AppCompatActivity implements RecyclerOnItemCli
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
         ButterKnife.bind(this);
+
         initView();
     }
 
 
     private void initView() {
 
+        initToolBar();
         initRecyclerView();
+        initSearchView();
+
+    }
 
 
+    /**
+     * init Toolbar
+     */
+    private void initToolBar() {
         setSupportActionBar(toolbar);
-
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
+    }
+
+
+    /**
+     * init RecyclerView
+     */
+    private void initRecyclerView() {
+
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(layoutManager);
+
+        mPeopleList = new ArrayList<>();
+
+        String[] peopleName = {"Kaka", "Modric", "Rooney", "Ibla", "Bale", "死神", "Maurice Moss", "Roy Trenneman", "林夕", "sina", "google", "ecust"};
+        String[] peopleDes = {"The best player", "莫德里奇是最好的后腰", "鲁尼踢得不好", "伊贝拉是谁？", "贝尔跑得真快", "Aaron", "Oh, four, I mean five, I mean fire!", "哈哈", "是个艺术家", "weibo", "android", "china"};
+
+        for (int i = 0; i < peopleName.length; i++) {
+            mPeopleList.add(new People(peopleName[i], peopleDes[i]));
+        }
+
+        mAdapter = new SearchPeopleAdapter(mPeopleList);
+        recyclerView.setAdapter(mAdapter);
+        HeaderAdapter headerAdapter = new HeaderAdapter(mAdapter);
+
+        recyclerView.setAdapter(headerAdapter);
+        recyclerView.addOnItemTouchListener(new RecyclerOnItemClickListener(this, recyclerView, this));
+
+
+    }
+
+    /**
+     * init SearchView
+     */
+    private void initSearchView() {
 
         searchView.setVoiceSearch(false);
         searchView.setCursorDrawable(R.drawable.custom_cursor);
@@ -86,8 +127,16 @@ public class MainActivity extends AppCompatActivity implements RecyclerOnItemCli
                 mAdapter.setFilter(mPeopleList);
             }
         });
+
     }
 
+
+    /**
+     * 筛选逻辑
+     * @param peoples
+     * @param query
+     * @return
+     */
     private List<People> filter(List<People> peoples, String query) {
         query = query.toLowerCase();
 
@@ -108,42 +157,25 @@ public class MainActivity extends AppCompatActivity implements RecyclerOnItemCli
     }
 
 
-    private void initRecyclerView() {
-
-
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        recyclerView.setLayoutManager(layoutManager);
-
-        mPeopleList = new ArrayList<>();
-
-        String[] peopleName = {"Kaka", "Modric", "Rooney", "Ibla", "Bale", "死神", "Maurice Moss", "Roy Trenneman", "林夕", "sina", "google", "ecust"};
-        String[] peopleDes = {"The best player", "莫德里奇是最好的后腰", "鲁尼踢得不好", "伊贝拉是谁？", "贝尔跑得真快", "Aaron", "Oh, four, I mean five, I mean fire!", "哈哈", "是个艺术家", "weibo", "android", "china"};
-
-        for (int i = 0; i < peopleName.length; i++) {
-            mPeopleList.add(new People(peopleName[i], peopleDes[i]));
-        }
-
-        mAdapter = new SearchPeopleAdapter(mPeopleList);
-        recyclerView.setAdapter(mAdapter);
-        HeaderAdapter headerAdapter = new HeaderAdapter(mAdapter);
-
-        recyclerView.setAdapter(headerAdapter);
-        recyclerView.addOnItemTouchListener(new RecyclerOnItemClickListener(this, recyclerView, this));
-
-
-    }
-
-
+    /**
+     * 搜索按钮
+     *
+     * @param menu
+     * @return
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_search, menu);
 
+        getMenuInflater().inflate(R.menu.menu_search, menu);
         MenuItem item = menu.findItem(R.id.action_search);
         searchView.setMenuItem(item);
 
         return true;
     }
 
+    /**
+     * 返回按钮处理
+     */
     @Override
     public void onBackPressed() {
         if (searchView.isSearchOpen()) {
@@ -153,6 +185,38 @@ public class MainActivity extends AppCompatActivity implements RecyclerOnItemCli
         }
     }
 
+
+    /**
+     * RecyclerView点击事件
+     *
+     * @param view
+     * @param position
+     */
+    @Override
+    public void onItemClick(View view, int position) {
+
+        MyToast.showShortToast(mPeopleList.get(position).getName());
+    }
+
+    /**
+     * RecyclerView长按点击事件
+     *
+     * @param view
+     * @param position
+     */
+    @Override
+    public void onItemLongClick(View view, int position) {
+        MyToast.showShortToast(mPeopleList.get(position).getName());
+
+    }
+
+    /**
+     * 筛选传递
+     *
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == MaterialSearchView.REQUEST_VOICE && resultCode == RESULT_OK) {
@@ -169,15 +233,4 @@ public class MainActivity extends AppCompatActivity implements RecyclerOnItemCli
         super.onActivityResult(requestCode, resultCode, data);
     }
 
-    @Override
-    public void onItemClick(View view, int position) {
-
-        MyToast.showShortToast(mPeopleList.get(position).getName());
-    }
-
-    @Override
-    public void onItemLongClick(View view, int position) {
-        MyToast.showShortToast(mPeopleList.get(position).getName());
-
-    }
 }
